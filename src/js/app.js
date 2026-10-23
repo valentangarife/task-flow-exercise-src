@@ -1,15 +1,22 @@
 import { obtenerTareas, guardarTareas } from './storage.js';
+
+// =============================================================================
+// TODO (Fase 2): Importar canvas-confetti
+// Una vez instalado el paquete con npm y configurado el importmap en index.html,
+// importa la función de confeti aquí:
+// import confetti from 'canvas-confetti';
+// =============================================================================
 import confetti from 'canvas-confetti';
 
-
-// TODO (Fase 2): Importar canvas-confetti
+// Referencias a los elementos del DOM
 const form = document.querySelector('#task-form');
 const input = document.querySelector('#txt');
 const listElement = document.querySelector('#task-list');
 
-
 // TODO (Fase 3): Obtén referencias a la barra de herramientas, contador y botones de filtro
 // querySelector o querySelectorAll, '#task-counter' o '.filter-btn'
+const counterElement = document.querySelector('#task-counter');
+const filterButtons = document.querySelectorAll('.filter-btn');
 
 // Estado de la aplicación
 let currentFilter = 'all'; // Valores posibles: 'all' | 'active' | 'completed'
@@ -21,13 +28,12 @@ let currentFilter = 'all'; // Valores posibles: 'all' | 'active' | 'completed'
  */
 function dispararConfeti() {
   //console.log('¡Disparar confeti aquí!');
-    confetti({
-      particleCount: 100,   // cuántas partículas (ej. 100)
-      spread: 70,          // qué tan abierto el abanico, en grados (ej. 70)
-      origin: { y: 0.6 },   // altura de salida: 0 = arriba, 1 = abajo (ej. 0.6)
-    });
-  }
-
+  confetti({
+    particleCount: 100, // cuántas partículas (ej. 100)
+    spread: 70, // qué tan abierto el abanico, en grados (ej. 70)
+    origin: { y: 0.6 }, // altura de salida: 0 = arriba, 1 = abajo (ej. 0.6)
+  });
+}
 
 /**
  * TODO (Fase 1 y 2): Alternar estado de completado
@@ -40,29 +46,28 @@ function dispararConfeti() {
  *
  * @param {number} id
  */
- //HECHO
+//HECHO
 function toggleTarea(id) {
   const list = obtenerTareas();
   const task = list.find((task) => task.id === id);
-  task.completed = !task.completed;   // ← invierte el valor actual (pista: !task.completed)
+  task.completed = !task.completed; // ← invierte el valor actual (pista: !task.completed)
   if (task.completed) {
-  dispararConfeti();
+    dispararConfeti();
   }
   guardarTareas(list);
-  render();                    // ← volver a dibujar (igual que en eliminarTarea)
+  render(); // ← volver a dibujar (igual que en eliminarTarea)
 }
-
 
 /**
  * Elimina una tarea por su id y vuelve a renderizar.
  * @param {number} id
  */
-  //TODO agrega funcionalidad de eliminar tarea sin modificar el storage.js
+//TODO agrega funcionalidad de eliminar tarea sin modificar el storage.js
 function eliminarTarea(id) {
   const list = obtenerTareas(); //lee el arreglo completo desde Storage
   const nuevaLista = list.filter((task) => task.id !== id); //recorremos cada tarea y se queda solo con las que no tienen el id que queremos borrar y nos va a  devuolver un arreglo nuevo sin esa tarea
   guardarTareas(nuevaLista); //sobrescribe lo guardado con la lista ya sin la tarea
-  render();//vuelve a dibujar la lista, porque el DOM no se actualiza solo.
+  render(); //vuelve a dibujar la lista, porque el DOM no se actualiza solo.
 }
 
 /**
@@ -74,11 +79,18 @@ function eliminarTarea(id) {
  */
 export function render() {
   const allTasks = obtenerTareas();
+  const mensajes = {
+    all: 'No hay tareas todavía. ¡Agrega la primera!',
+    active: '¡Excelente! No tienes tareas pendientes',
+    completed: 'No hay tareas completadas aún',
+  };
 
   // ---------------------------------------------------------------------------
   // 1. TODO (Fase 3): Actualizar contador de tareas pendientes
   // Calcula cuántas tareas tienen completed === false y actualiza el texto del contador.
-  // -----------------
+  // ---------------------------------------------------------------------------
+  const pendientes = allTasks.filter((task) => !task.completed).length;
+  counterElement.textContent = `${pendientes} pendientes`;
 
   // ---------------------------------------------------------------------------
   // 2. TODO (Fase 3): Filtrar las tareas según currentFilter
@@ -86,7 +98,12 @@ export function render() {
   // Si currentFilter === 'completed', muestra solo las completadas.
   // Si currentFilter === 'all', muestra todas.
   // ---------------------------------------------------------------------------
-  const tasksToRender = allTasks; // Reemplaza esto con tu lógica de filtrado
+  let tasksToRender = allTasks; // Reemplaza esto con tu lógica de filtrado
+  if (currentFilter === 'active') {
+    tasksToRender = allTasks.filter((task) => !task.completed);
+  } else if (currentFilter === 'completed') {
+    tasksToRender = allTasks.filter((task) => task.completed);
+  }
 
   // 3. Limpiar la lista actual en el DOM
   listElement.innerHTML = '';
@@ -95,7 +112,7 @@ export function render() {
   if (tasksToRender.length === 0) {
     const emptyLi = document.createElement('li');
     emptyLi.className = 'empty-state';
-    emptyLi.textContent = 'No hay tareas para mostrar.';
+    emptyLi.textContent = mensajes[currentFilter];
     listElement.appendChild(emptyLi);
     return;
   }
@@ -106,7 +123,6 @@ export function render() {
     // TODO (Fase 1): Agrega la clase 'completed' al elemento si task.completed es true
     li.className = 'task-item';
     if (task.completed) li.classList.add('completed');
-
 
     const leftDiv = document.createElement('div');
     leftDiv.className = 'task-left';
@@ -133,8 +149,7 @@ export function render() {
     deleteBtn.className = 'delete-btn';
     deleteBtn.textContent = 'Eliminar';
     deleteBtn.type = 'button';
-    deleteBtn.addEventListener('click', () => eliminarTarea(task.id));// Agrega acción de borrado usando eliminarTarea(task.id);
-
+    deleteBtn.addEventListener('click', () => eliminarTarea(task.id)); // Agrega acción de borrado usando eliminarTarea(task.id);
 
     li.appendChild(leftDiv);
     li.appendChild(deleteBtn);
@@ -149,6 +164,14 @@ export function render() {
 // 2. Actualizar currentFilter con el valor del filtro ('all', 'active', 'completed').
 // 3. Llamar a render().
 // =============================================================================
+filterButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    filterButtons.forEach((btn) => btn.classList.remove('active'));
+    button.classList.add('active');
+    currentFilter = button.dataset.filter;
+    render();
+  });
+});
 
 // Listener para el envío del formulario
 form.addEventListener('submit', (e) => {
