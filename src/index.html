@@ -12,7 +12,7 @@
        Cuando instales canvas-confetti con npm, descomenta y adapta el importmap
        para que tu navegador pueda resolver: import confetti from 'canvas-confetti';
        =================================================================== -->
-  <!--
+
   <script type="importmap">
     {
       "imports": {
@@ -20,7 +20,7 @@
       }
     }
   </script>
-  -->
+
 </head>
 
 <body>
@@ -42,8 +42,14 @@
             (Pista: Puedes usar atributos data-filter y la clase "active").
          2. Un elemento contador para indicar cuántas tareas pendientes quedan.
          =================================================================== -->
-    <section class="toolbar" id="toolbar" style="display: none;">
-      <!-- Inserta aquí tus botones de filtro y el contador -->
+    <!-- Inserta aquí tus botones de filtro y el contador --> HECHO
+    <section class="toolbar" id="toolbar">
+      <div class="filter-group">
+        <button type="button" class="filter-btn active" data-filter="all">Todas</button>
+        <button type="button" class="filter-btn" data-filter="active">Activas</button>
+        <button type="button" class="filter-btn" data-filter="completed">Completadas</button>
+      </div>
+      <span id="task-counter" class="counter"></span>
     </section>
 
     <ul id="task-list" class="task-list"></ul>

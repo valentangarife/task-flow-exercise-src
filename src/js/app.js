@@ -1,16 +1,12 @@
 import { obtenerTareas, guardarTareas } from './storage.js';
+import confetti from 'canvas-confetti';
 
-// =============================================================================
+
 // TODO (Fase 2): Importar canvas-confetti
-// Una vez instalado el paquete con npm y configurado el importmap en index.html,
-// importa la función de confeti aquí:
-// import confetti from 'canvas-confetti';
-// =============================================================================
-
-// Referencias a los elementos del DOM
 const form = document.querySelector('#task-form');
 const input = document.querySelector('#txt');
 const listElement = document.querySelector('#task-list');
+
 
 // TODO (Fase 3): Obtén referencias a la barra de herramientas, contador y botones de filtro
 // querySelector o querySelectorAll, '#task-counter' o '.filter-btn'
@@ -24,8 +20,14 @@ let currentFilter = 'all'; // Valores posibles: 'all' | 'active' | 'completed'
  * Consulta la documentación: https://www.npmjs.com/package/canvas-confetti
  */
 function dispararConfeti() {
-  console.log('¡Disparar confeti aquí!');
-}
+  //console.log('¡Disparar confeti aquí!');
+    confetti({
+      particleCount: 100,   // cuántas partículas (ej. 100)
+      spread: 70,          // qué tan abierto el abanico, en grados (ej. 70)
+      origin: { y: 0.6 },   // altura de salida: 0 = arriba, 1 = abajo (ej. 0.6)
+    });
+  }
+
 
 /**
  * TODO (Fase 1 y 2): Alternar estado de completado
@@ -35,25 +37,37 @@ function dispararConfeti() {
  * 4. Si la tarea pasó a ser completada (true), llama a dispararConfeti().
  * 5. Guarda la lista actualizada con guardarTareas(list).
  * 6. Vuelve a ejecutar render() para refrescar la vista.
- * 
+ *
  * @param {number} id
  */
+ //HECHO
 function toggleTarea(id) {
-  // Escribe aquí tu implementación
+  const list = obtenerTareas();
+  const task = list.find((task) => task.id === id);
+  task.completed = !task.completed;   // ← invierte el valor actual (pista: !task.completed)
+  if (task.completed) {
+  dispararConfeti();
+  }
+  guardarTareas(list);
+  render();                    // ← volver a dibujar (igual que en eliminarTarea)
 }
+
 
 /**
  * Elimina una tarea por su id y vuelve a renderizar.
  * @param {number} id
  */
-function eliminarTarea(id) {
   //TODO agrega funcionalidad de eliminar tarea sin modificar el storage.js
-
+function eliminarTarea(id) {
+  const list = obtenerTareas(); //lee el arreglo completo desde Storage
+  const nuevaLista = list.filter((task) => task.id !== id); //recorremos cada tarea y se queda solo con las que no tienen el id que queremos borrar y nos va a  devuolver un arreglo nuevo sin esa tarea
+  guardarTareas(nuevaLista); //sobrescribe lo guardado con la lista ya sin la tarea
+  render();//vuelve a dibujar la lista, porque el DOM no se actualiza solo.
 }
 
 /**
  * Renderiza la lista de tareas en el DOM.
- * 
+ *
  * TODO (Fase 1): Incluir un checkbox en cada elemento para marcar/desmarcar como completada.
  * TODO (Fase 3): Aplicar el filtro actual (currentFilter) antes de dibujar las tareas.
  * TODO (Fase 3): Actualizar el contador de tareas pendientes en el DOM.
@@ -64,7 +78,7 @@ export function render() {
   // ---------------------------------------------------------------------------
   // 1. TODO (Fase 3): Actualizar contador de tareas pendientes
   // Calcula cuántas tareas tienen completed === false y actualiza el texto del contador.
-  // ---------------------------------------------------------------------------
+  // -----------------
 
   // ---------------------------------------------------------------------------
   // 2. TODO (Fase 3): Filtrar las tareas según currentFilter
@@ -91,6 +105,8 @@ export function render() {
     const li = document.createElement('li');
     // TODO (Fase 1): Agrega la clase 'completed' al elemento si task.completed es true
     li.className = 'task-item';
+    if (task.completed) li.classList.add('completed');
+
 
     const leftDiv = document.createElement('div');
     leftDiv.className = 'task-left';
@@ -98,6 +114,11 @@ export function render() {
     // TODO (Fase 1): Crea un <input type="checkbox" class="task-checkbox">
     // - asígnale checked = task.completed
     // - agrega un event listener 'change' que invoque toggleTarea(task.id)
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'task-checkbox';
+    checkbox.checked = task.completed;
+    checkbox.addEventListener('change', () => toggleTarea(task.id));
 
     const span = document.createElement('span');
     span.className = 'task-text';
@@ -105,13 +126,14 @@ export function render() {
 
     // Agrega el checkbox y el span al contenedor izquierdo:
 
+    leftDiv.appendChild(checkbox);
     leftDiv.appendChild(span);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
     deleteBtn.textContent = 'Eliminar';
     deleteBtn.type = 'button';
-    // Agrega acción de borrado usando eliminarTarea(task.id);
+    deleteBtn.addEventListener('click', () => eliminarTarea(task.id));// Agrega acción de borrado usando eliminarTarea(task.id);
 
 
     li.appendChild(leftDiv);

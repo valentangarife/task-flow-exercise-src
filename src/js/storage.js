@@ -15,15 +15,17 @@ export function obtenerTareas() {
   if (!data) return [];
   try {
     const list = JSON.parse(data);
-    // TODO: Mapea cada tarea garantizando la propiedad 'completed: boolean'
-    return list.map((task) => ({
-      ...task,
+    return list.map((task) => ({...
+    task,
+    completed: Boolean(task.completed), // TODO: Mapea cada tarea garantizando la propiedad 'completed: boolean'
+
     }));
   } catch (error) {
     console.error('Error al parsear tareas desde localStorage:', error);
     return [];
   }
 }
+
 
 /**
  * Guarda el arreglo de tareas en localStorage serializado en JSON.
